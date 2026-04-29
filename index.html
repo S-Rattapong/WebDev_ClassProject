@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FIBO-MART | Industrial Ecommerce UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+            },
+            colors: {
+              fibo: {
+                ink: "#020617",
+                navy: "#0f172a",
+                blue: "#2563eb",
+                yellow: "#facc15",
+                orange: "#f97316",
+                mist: "#e2e8f0",
+              },
+            },
+            boxShadow: {
+              soft: "0 22px 44px rgba(15, 23, 42, 0.18)",
+              panel: "0 20px 50px rgba(2, 6, 23, 0.45)",
+              glow: "0 18px 40px rgba(249, 115, 22, 0.18)",
+            },
+            backgroundImage: {
+              fibo:
+                "radial-gradient(circle at top, rgba(249,115,22,0.14), transparent 30%), linear-gradient(180deg, #0f172a 0%, #020617 100%)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
