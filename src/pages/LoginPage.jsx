@@ -5,19 +5,30 @@ export default function LoginPage({ onNavigateRegister, onNavigateHome }) {
   const { authRedirectPath, login, setAuthRedirectPath } = useAppContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setError("");
 
     if (!email.trim() || !password.trim()) {
-      alert("Please enter both email and password.");
+      setError("Please enter both email and password.");
       return;
     }
 
-    login({ email: email.trim() });
-    const destination = authRedirectPath || "/";
-    setAuthRedirectPath("/");
-    window.location.hash = destination;
+    setLoading(true);
+
+    try {
+      await login({ email: email.trim(), password: password.trim() });
+      const destination = authRedirectPath || "/";
+      setAuthRedirectPath("/");
+      window.location.hash = destination;
+    } catch (err) {
+      setError(err.message || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,8 +37,14 @@ export default function LoginPage({ onNavigateRegister, onNavigateHome }) {
         <p className="text-sm uppercase tracking-[0.3em] text-fibo-orange">Account access</p>
         <h1 className="mt-4 text-3xl font-semibold">Login</h1>
         <p className="mt-3 text-sm leading-7 text-slate-600">
-          Mock login mode is enabled for now. Later we can connect this form to a real database.
+          Sign in with your registered email and password.
         </p>
+
+        {error ? (
+          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <label className="block">
@@ -37,7 +54,8 @@ export default function LoginPage({ onNavigateRegister, onNavigateHome }) {
               onChange={(event) => setEmail(event.target.value)}
               type="email"
               placeholder="you@example.com"
-              className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue"
+              disabled={loading}
+              className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue disabled:opacity-50"
             />
           </label>
 
@@ -47,13 +65,17 @@ export default function LoginPage({ onNavigateRegister, onNavigateHome }) {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               type="password"
-              placeholder="Enter any password"
-              className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue"
+              placeholder="Enter your password"
+              disabled={loading}
+              className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue disabled:opacity-50"
             />
           </label>
 
-          <button className="w-full rounded-2xl bg-fibo-blue px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
-            Sign in
+          <button
+            disabled={loading}
+            className="w-full rounded-2xl bg-fibo-blue px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
 

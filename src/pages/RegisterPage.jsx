@@ -9,30 +9,54 @@ export default function RegisterPage({ onNavigateLogin, onNavigateHome }) {
     password: "",
     confirmPassword: "",
   });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setError("");
+    setSuccess("");
 
     if (!form.username.trim() || !form.email.trim() || !form.password.trim() || !form.confirmPassword.trim()) {
-      alert("Please complete all fields.");
+      setError("Please complete all fields.");
+      return;
+    }
+
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
       return;
     }
 
     if (form.password !== form.confirmPassword) {
-      alert("Password and confirm password do not match.");
+      setError("Password and confirm password do not match.");
       return;
     }
 
-    register({
-      username: form.username.trim(),
-      email: form.email.trim(),
-    });
-    alert("Register successful. Please login with your new account.");
-    onNavigateLogin();
+    setLoading(true);
+
+    try {
+      const data = await register({
+        username: form.username.trim(),
+        email: form.email.trim(),
+        password: form.password,
+      });
+
+      if (data?.user?.identities?.length === 0) {
+        setError("This email is already registered. Please login instead.");
+      } else {
+        setSuccess("Registration successful! Redirecting to login…");
+        setTimeout(() => onNavigateLogin(), 1500);
+      }
+    } catch (err) {
+      setError(err.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,8 +65,20 @@ export default function RegisterPage({ onNavigateLogin, onNavigateHome }) {
         <p className="text-sm uppercase tracking-[0.3em] text-fibo-orange">New account</p>
         <h1 className="mt-4 text-3xl font-semibold">Register</h1>
         <p className="mt-3 text-sm leading-7 text-slate-600">
-          This form is mock-only for now, but it is ready to be connected to database-backed registration later.
+          Create your account to start shopping with FIBO-MART.
         </p>
+
+        {error ? (
+          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        ) : null}
+
+        {success ? (
+          <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            {success}
+          </div>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
           <label className="block">
@@ -52,7 +88,8 @@ export default function RegisterPage({ onNavigateLogin, onNavigateHome }) {
               onChange={(event) => updateField("username", event.target.value)}
               type="text"
               placeholder="Your username"
-              className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue"
+              disabled={loading}
+              className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue disabled:opacity-50"
             />
           </label>
 
@@ -63,9 +100,11 @@ export default function RegisterPage({ onNavigateLogin, onNavigateHome }) {
               onChange={(event) => updateField("email", event.target.value)}
               type="email"
               placeholder="you@example.com"
-              className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue"
+              disabled={loading}
+              className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue disabled:opacity-50"
             />
           </label>
+
 
           <div className="grid gap-5 md:grid-cols-2">
             <label className="block">
@@ -75,7 +114,8 @@ export default function RegisterPage({ onNavigateLogin, onNavigateHome }) {
                 onChange={(event) => updateField("password", event.target.value)}
                 type="password"
                 placeholder="Create password"
-                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue"
+                disabled={loading}
+                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue disabled:opacity-50"
               />
             </label>
 
@@ -86,13 +126,17 @@ export default function RegisterPage({ onNavigateLogin, onNavigateHome }) {
                 onChange={(event) => updateField("confirmPassword", event.target.value)}
                 type="password"
                 placeholder="Confirm password"
-                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue"
+                disabled={loading}
+                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-fibo-blue disabled:opacity-50"
               />
             </label>
           </div>
 
-          <button className="w-full rounded-2xl bg-fibo-blue px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
-            Create account
+          <button
+            disabled={loading}
+            className="w-full rounded-2xl bg-fibo-blue px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
 

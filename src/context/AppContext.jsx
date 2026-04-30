@@ -1,42 +1,106 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { supabase } from "../lib/supabase";
+import { fetchProducts } from "../lib/productService";
+import { useCartStore } from "../store/cartStore";
 
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [cart, setCart] = useState([]);
+  const [session, setSession] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [authRedirectPath, setAuthRedirectPath] = useState("/");
-  const [currentUser, setCurrentUser] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
 
-  const login = ({ email }) => {
-    setIsLoggedIn(true);
-    setCurrentUser({ email });
+  // ── Listen to Supabase auth state changes ──
+  useEffect(() => {
+    // Get the initial session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setIsLoading(false);
+    });
+
+    // Subscribe to auth changes (login, logout, token refresh)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      setSession(currentSession);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // ── Load products from Supabase ──
+  const loadProducts = async () => {
+    setProductsLoading(true);
+    try {
+      const data = await fetchProducts();
+      setProducts(data || []);
+    } catch (err) {
+      console.error("Failed to load products:", err.message);
+    } finally {
+      setProductsLoading(false);
+    }
   };
 
-  const register = ({ username, email }) => ({ username, email });
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
-  const logout = () => {
-    setIsLoggedIn(false);
-    setCurrentUser(null);
-    setCart([]);
+  // ── Derived state ──
+  const isLoggedIn = !!session;
+  const currentUser = session?.user
+    ? {
+        id: session.user.id,
+        email: session.user.email,
+        username: session.user.user_metadata?.username || session.user.email,
+      }
+    : null;
+
+  // ── Auth actions ──
+  const login = async ({ email, password }) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+    return data;
+  };
+
+  const register = async ({ username, email, password, address }) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { username },
+      },
+    });
+
+    if (error) throw error;
+
+    // Insert into USER table
+    if (data?.user) {
+      const { error: insertError } = await supabase.from("USER").insert({
+        name: username,
+        email: email,
+        address: address || "",
+      });
+
+      if (insertError) throw insertError;
+    }
+
+    return data;
+  };
+
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    useCartStore.getState().clearCart();
     setAuthRedirectPath("/");
   };
 
-  const addToCart = (product, quantity = 1) => {
-    setCart((currentCart) => {
-      const existing = currentCart.find((item) => item.id === product.id);
-
-      if (existing) {
-        return currentCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item,
-        );
-      }
-
-      return [...currentCart, { ...product, quantity }];
-    });
-  };
-
-  const addToCartWithAuth = (product, quantity, currentPath, onNavigateLogin) => {
+  const addToCartWithAuth = (cartItem, quantity, currentPath, onNavigateLogin) => {
     if (!isLoggedIn) {
       alert("Please login first to add items to your cart.");
       setAuthRedirectPath(currentPath || "/");
@@ -44,43 +108,27 @@ export function AppProvider({ children }) {
       return false;
     }
 
-    addToCart(product, quantity);
+    useCartStore.getState().addToCart(cartItem, quantity);
     return true;
-  };
-
-  const removeFromCart = (productId) => {
-    setCart((currentCart) => currentCart.filter((item) => item.id !== productId));
-  };
-
-  const updateCartQuantity = (productId, nextQuantity) => {
-    if (nextQuantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-
-    setCart((currentCart) =>
-      currentCart.map((item) =>
-        item.id === productId ? { ...item, quantity: nextQuantity } : item,
-      ),
-    );
   };
 
   const value = useMemo(
     () => ({
-      addToCart,
       addToCartWithAuth,
       authRedirectPath,
-      cart,
       currentUser,
+      isLoading,
       isLoggedIn,
       login,
       logout,
+      products,
+      productsLoading,
+      refreshProducts: loadProducts,
       register,
-      removeFromCart,
+      session,
       setAuthRedirectPath,
-      updateCartQuantity,
     }),
-    [authRedirectPath, cart, currentUser, isLoggedIn],
+    [authRedirectPath, currentUser, isLoading, isLoggedIn, products, productsLoading, session],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

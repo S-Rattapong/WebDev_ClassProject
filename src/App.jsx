@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAppContext } from "./context/AppContext";
+import { useCartStore } from "./store/cartStore";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import CartPage from "./pages/CartPage";
-import CategoryPage from "./pages/CategoryPage";
 import LoginPage from "./pages/LoginPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductListPage from "./pages/ProductListPage";
@@ -12,28 +12,17 @@ import RegisterPage from "./pages/RegisterPage";
 
 function getRouteFromHash() {
   const hash = window.location.hash.replace(/^#/, "") || "/";
-  const categoryMatch = hash.match(/^\/categories\/([^/]+)$/);
   const productMatch = hash.match(/^\/products\/([^/]+)$/);
-
-  if (categoryMatch) {
-    return {
-      path: "/categories/:categoryId",
-      categoryId: categoryMatch[1],
-      productId: null,
-    };
-  }
 
   if (productMatch) {
     return {
       path: "/products/:productId",
-      categoryId: null,
       productId: productMatch[1],
     };
   }
 
   return {
     path: hash,
-    categoryId: null,
     productId: null,
   };
 }
@@ -44,7 +33,17 @@ function navigateTo(path) {
 
 export default function App() {
   const [route, setRoute] = useState(getRouteFromHash());
-  const { cart, isLoggedIn, logout } = useAppContext();
+  const { isLoggedIn, isLoading, logout } = useAppContext();
+  const cart = useCartStore((state) => state.cart);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigateTo("/");
+    } catch (err) {
+      console.error("Logout failed:", err.message);
+    }
+  };
 
   useEffect(() => {
     const handleHashChange = () => setRoute(getRouteFromHash());
@@ -58,7 +57,6 @@ export default function App() {
   );
 
   const currentPath = useMemo(() => {
-    if (route.path === "/categories/:categoryId") return `/categories/${route.categoryId}`;
     if (route.path === "/products/:productId") return `/products/${route.productId}`;
     return route.path || "/";
   }, [route]);
@@ -66,14 +64,9 @@ export default function App() {
   const shouldShowHero = route.path === "/";
 
   const renderPage = () => {
-    if (route.path === "/") {
-      return <CategoryPage onSelectCategory={(categoryId) => navigateTo(`/categories/${categoryId}`)} />;
-    }
-
-    if (route.path === "/categories/:categoryId") {
+    if (route.path === "/" || route.path === "/products") {
       return (
         <ProductListPage
-          categoryId={route.categoryId}
           currentPath={currentPath}
           onNavigateHome={() => navigateTo("/")}
           onViewProduct={(productId) => navigateTo(`/products/${productId}`)}
@@ -88,7 +81,6 @@ export default function App() {
           productId={route.productId}
           currentPath={currentPath}
           onNavigateHome={() => navigateTo("/")}
-          onNavigateCategory={(categoryId) => navigateTo(`/categories/${categoryId}`)}
           onNavigateLogin={() => navigateTo("/login")}
         />
       );
@@ -111,8 +103,26 @@ export default function App() {
       return <RegisterPage onNavigateLogin={() => navigateTo("/login")} onNavigateHome={() => navigateTo("/")} />;
     }
 
-    return <CategoryPage onSelectCategory={(categoryId) => navigateTo(`/categories/${categoryId}`)} />;
+    return (
+      <ProductListPage
+        currentPath={currentPath}
+        onNavigateHome={() => navigateTo("/")}
+        onViewProduct={(productId) => navigateTo(`/products/${productId}`)}
+        onNavigateLogin={() => navigateTo("/login")}
+      />
+    );
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-fibo text-white">
+        <div className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-fibo-blue"></div>
+          <p className="mt-4 text-sm text-slate-400">Loading…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-fibo text-white">
@@ -123,7 +133,7 @@ export default function App() {
         onNavigateCart={() => navigateTo("/cart")}
         cartCount={cartCount}
         isLoggedIn={isLoggedIn}
-        onLogout={logout}
+        onLogout={handleLogout}
       />
       <main className="min-h-[calc(100vh-180px)] bg-fibo">
         <div className="bg-fibo">
