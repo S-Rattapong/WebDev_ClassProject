@@ -47,9 +47,9 @@ export default function SidebarFilter({
             onChange={(event) => setSelectedBrand(event.target.value)}
             className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none"
           >
-            <option value="all">All brands</option>
+            <option value="all" className="bg-slate-900 text-white">All brands</option>
             {brands.map((brand) => (
-              <option key={brand} value={brand}>
+              <option key={brand} value={brand} className="bg-slate-900 text-white">
                 {brand}
               </option>
             ))}
@@ -75,9 +75,9 @@ export default function SidebarFilter({
             onChange={(event) => setSelectedType(event.target.value)}
             className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none"
           >
-            <option value="all">All product types</option>
+            <option value="all" className="bg-slate-900 text-white">All product types</option>
             {types.map((type) => (
-              <option key={type} value={type}>
+              <option key={type} value={type} className="bg-slate-900 text-white">
                 {type}
               </option>
             ))}

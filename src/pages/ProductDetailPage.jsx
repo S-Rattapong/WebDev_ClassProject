@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import ModelViewer from "../components/ModelViewer";
 import { useAppContext } from "../context/AppContext";
 import { formatPrice } from "../data";
-import { getAttributeKeys, getAttributeOptions, findVariantByAttributes } from "../lib/productService";
+import {
+  findVariantByAttributes,
+  getAttributeKeys,
+  getAttributeOptions,
+  getConstrainedAttributeOptions,
+} from "../lib/productService";
 
 function AttributeSelector({ label, options, selectedValue, onSelect }) {
   return (
@@ -53,12 +58,7 @@ export default function ProductDetailPage({
   // Initialize selected attributes with first option of each key
   useEffect(() => {
     if (!product) return;
-    const initial = {};
-    attributeKeys.forEach((key) => {
-      const options = getAttributeOptions(product, key);
-      if (options.length > 0) initial[key] = options[0];
-    });
-    setSelectedAttributes(initial);
+    setSelectedAttributes({});
     setQuantity(1);
   }, [product, attributeKeys]);
 
@@ -119,7 +119,16 @@ export default function ProductDetailPage({
   };
 
   const handleSelectAttribute = (key, value) => {
-    setSelectedAttributes((current) => ({ ...current, [key]: value }));
+    setSelectedAttributes((current) => {
+      const next = { ...current };
+      if (current[key] === value) {
+        delete next[key];
+      } else {
+        next[key] = value;
+      }
+
+      return next;
+    });
   };
 
   // ── Variant Selector Panel ──
@@ -132,12 +141,7 @@ export default function ProductDetailPage({
         </div>
         <button
           onClick={() => {
-            const initial = {};
-            attributeKeys.forEach((key) => {
-              const options = getAttributeOptions(product, key);
-              if (options.length > 0) initial[key] = options[0];
-            });
-            setSelectedAttributes(initial);
+            setSelectedAttributes({});
           }}
           className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-fibo-blue hover:text-fibo-blue"
         >
@@ -149,7 +153,7 @@ export default function ProductDetailPage({
         <AttributeSelector
           key={key}
           label={key.replace(/_/g, " ")}
-          options={getAttributeOptions(product, key)}
+          options={getConstrainedAttributeOptions(product, key, selectedAttributes)}
           selectedValue={selectedAttributes[key]}
           onSelect={(value) => handleSelectAttribute(key, value)}
         />
