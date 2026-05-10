@@ -63,13 +63,8 @@ export default function App() {
     return route.path || "/";
   }, [route]);
 
-<<<<<<< Updated upstream
-  const shouldShowHero = route.path === "/";
-=======
   const isHomeOrProductsPage = route.path === "/" || route.path === "/products";
   const shouldShowHero = isHomeOrProductsPage;
-  const shouldShowFeaturedShowcase = isHomeOrProductsPage;
->>>>>>> Stashed changes
 
   const renderPage = () => {
     if (route.path === "/" || route.path === "/products") {
