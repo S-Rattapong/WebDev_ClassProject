@@ -35,17 +35,15 @@ export default function ModelViewer({ modelUrl, imageUrl }) {
       <div className="absolute left-4 top-4 z-10 flex overflow-hidden rounded-full border border-slate-200 bg-white/90 shadow-sm backdrop-blur">
         <button
           onClick={() => setViewMode("3D")}
-          className={`px-4 py-1.5 text-xs font-semibold transition ${
-            viewMode === "3D" ? "bg-fibo-blue text-white" : "text-slate-500 hover:bg-slate-50"
-          }`}
+          className={`px-4 py-1.5 text-xs font-semibold transition ${viewMode === "3D" ? "bg-fibo-blue text-white" : "text-slate-500 hover:bg-slate-50"
+            }`}
         >
           3D
         </button>
         <button
           onClick={() => setViewMode("2D")}
-          className={`px-4 py-1.5 text-xs font-semibold transition ${
-            viewMode === "2D" ? "bg-fibo-blue text-white" : "text-slate-500 hover:bg-slate-50"
-          }`}
+          className={`px-4 py-1.5 text-xs font-semibold transition ${viewMode === "2D" ? "bg-fibo-blue text-white" : "text-slate-500 hover:bg-slate-50"
+            }`}
         >
           2D
         </button>
@@ -60,7 +58,7 @@ export default function ModelViewer({ modelUrl, imageUrl }) {
             {modelUrl ? <GLTFModel key={modelUrl} url={modelUrl} /> : <FallbackShape />}
           </Suspense>
           <ContactShadows position={[0, -0.05, 0]} opacity={0.35} blur={2} scale={10} far={4} />
-          <gridHelper position={[0, -0.05, 0]} args={[10, 20, '#94a3b8', '#e2e8f0']} />
+          <gridHelper position={[0, -0.05, 0]} args={[10, 20, '#94a3b8', '#e2e8f0']} cellSize={0.1} />
           <Environment preset="city" />
           <OrbitControls
             autoRotate={!isInteracting}
