@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAppContext } from "./context/AppContext";
 import { useCartStore } from "./store/cartStore";
 import Footer from "./components/Footer";
+import FeaturedShowcase from "./components/FeaturedShowcase";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import CartPage from "./pages/CartPage";
@@ -63,8 +64,8 @@ export default function App() {
     return route.path || "/";
   }, [route]);
 
-  const isHomeOrProductsPage = route.path === "/" || route.path === "/products";
-  const shouldShowHero = isHomeOrProductsPage;
+  const shouldShowHero = route.path === "/";
+  const shouldShowFeaturedShowcase = route.path === "/";
 
   const renderPage = () => {
     if (route.path === "/" || route.path === "/products") {
@@ -160,6 +161,7 @@ export default function App() {
       <main className="min-h-[calc(100vh-180px)] bg-fibo">
         <div className="bg-fibo">
           {shouldShowHero ? <HeroSection /> : null}
+          {shouldShowFeaturedShowcase ? <FeaturedShowcase /> : null}
           {renderPage()}
         </div>
       </main>
