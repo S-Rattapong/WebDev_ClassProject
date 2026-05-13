@@ -7,8 +7,10 @@ import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
+import PackageStatusPage from "./pages/PackageStatusPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductListPage from "./pages/ProductListPage";
+import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
 
 function getRouteFromHash() {
@@ -34,7 +36,7 @@ function navigateTo(path) {
 
 export default function App() {
   const [route, setRoute] = useState(getRouteFromHash());
-  const { isLoggedIn, isLoading, logout } = useAppContext();
+  const { currentUser, isLoggedIn, isLoading, logout } = useAppContext();
   const cart = useCartStore((state) => state.cart);
 
   const handleLogout = async () => {
@@ -105,6 +107,22 @@ export default function App() {
       return <RegisterPage onNavigateLogin={() => navigateTo("/login")} onNavigateHome={() => navigateTo("/")} />;
     }
 
+    if (route.path === "/profile") {
+      if (!isLoggedIn) {
+        navigateTo("/login");
+        return null;
+      }
+      return <ProfilePage />;
+    }
+
+    if (route.path === "/package-status") {
+      if (!isLoggedIn) {
+        navigateTo("/login");
+        return null;
+      }
+      return <PackageStatusPage />;
+    }
+
     return (
       <ProductListPage
         currentPath={currentPath}
@@ -133,8 +151,11 @@ export default function App() {
         onNavigateLogin={() => navigateTo("/login")}
         onNavigateRegister={() => navigateTo("/register")}
         onNavigateCart={() => navigateTo("/cart")}
+        onNavigateProfile={() => navigateTo("/profile")}
+        onNavigatePackageStatus={() => navigateTo("/package-status")}
         cartCount={cartCount}
         isLoggedIn={isLoggedIn}
+        currentUser={currentUser}
         onLogout={handleLogout}
       />
       <main className="min-h-[calc(100vh-180px)] bg-fibo">

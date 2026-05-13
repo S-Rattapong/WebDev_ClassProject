@@ -11,6 +11,7 @@ export function AppProvider({ children }) {
   const [authRedirectPath, setAuthRedirectPath] = useState("/");
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState(null);
 
   // ── Listen to Supabase auth state changes ──
   useEffect(() => {
@@ -47,13 +48,39 @@ export function AppProvider({ children }) {
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!session?.user?.email) {
+        setUserProfile(null);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from("USER")
+          .select("name, email, address")
+          .eq("email", session.user.email)
+          .maybeSingle();
+
+        if (error) throw error;
+        setUserProfile(data || null);
+      } catch (err) {
+        console.error("Failed to load user profile:", err.message);
+        setUserProfile(null);
+      }
+    };
+
+    loadUserProfile();
+  }, [session?.user?.email]);
+
   // ── Derived state ──
   const isLoggedIn = !!session;
   const currentUser = session?.user
     ? {
         id: session.user.id,
         email: session.user.email,
-        username: session.user.user_metadata?.username || session.user.email,
+        username: userProfile?.name || session.user.user_metadata?.username || "",
+        address: userProfile?.address || "",
       }
     : null;
 
@@ -100,6 +127,46 @@ export function AppProvider({ children }) {
     setAuthRedirectPath("/");
   };
 
+  const updateUserProfile = async ({ name, address }) => {
+    if (!session?.user?.email) {
+      throw new Error("Please login before updating profile.");
+    }
+
+    const email = session.user.email;
+    const payload = {
+      name: name.trim(),
+      address: (address || "").trim(),
+    };
+
+    const { data: updatedRow, error: updateError } = await supabase
+      .from("USER")
+      .update(payload)
+      .eq("email", email)
+      .select("name, email, address")
+      .maybeSingle();
+
+    if (updateError) throw updateError;
+
+    let profile = updatedRow;
+
+    if (!profile) {
+      const { data: insertedRow, error: insertError } = await supabase
+        .from("USER")
+        .insert({
+          email,
+          ...payload,
+        })
+        .select("name, email, address")
+        .single();
+
+      if (insertError) throw insertError;
+      profile = insertedRow;
+    }
+
+    setUserProfile(profile);
+    return profile;
+  };
+
   const addToCartWithAuth = (cartItem, quantity, currentPath, onNavigateLogin) => {
     if (!isLoggedIn) {
       alert("Please login first to add items to your cart.");
@@ -127,6 +194,7 @@ export function AppProvider({ children }) {
       register,
       session,
       setAuthRedirectPath,
+      updateUserProfile,
     }),
     [authRedirectPath, currentUser, isLoading, isLoggedIn, products, productsLoading, session],
   );

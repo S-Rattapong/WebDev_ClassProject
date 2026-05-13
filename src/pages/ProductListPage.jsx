@@ -71,10 +71,10 @@ export default function ProductListPage({ onNavigateHome, onViewProduct, onNavig
             onChange={(event) => setSortBy(event.target.value)}
             className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
           >
-            <option value="popular">Popular</option>
-            <option value="newest">Newest</option>
-            <option value="price-low">Price low to high</option>
-            <option value="price-high">Price high to low</option>
+            <option value="popular" className="bg-slate-900 text-white">Popular</option>
+            <option value="newest" className="bg-slate-900 text-white">Newest</option>
+            <option value="price-low" className="bg-slate-900 text-white">Price low to high</option>
+            <option value="price-high" className="bg-slate-900 text-white">Price high to low</option>
           </select>
         </div>
       </div>

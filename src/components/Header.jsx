@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { CartIcon, HelpIcon, MenuIcon } from "./Icons";
+import { CartIcon, MenuIcon } from "./Icons";
 import SearchBar from "./SearchBar";
 
 function HeaderIcon({ children, label, badge, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:border-fibo-blue hover:text-fibo-blue"
+      className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-white/30 text-white transition hover:border-fibo-blue hover:text-fibo-blue"
     >
       {children}
       {badge ? (
@@ -24,11 +24,16 @@ export default function Header({
   onNavigateLogin,
   onNavigateRegister,
   onNavigateCart,
+  onNavigateProfile,
+  onNavigatePackageStatus,
   cartCount,
   isLoggedIn,
+  currentUser,
   onLogout,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileName = (currentUser?.username || "").trim() || "Profile";
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-slate-950/75 backdrop-blur">
@@ -46,7 +51,7 @@ export default function Header({
 
             <button
               onClick={() => setMenuOpen((value) => !value)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-700 lg:hidden"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/30 text-white lg:hidden"
               aria-label="Open menu"
             >
               <MenuIcon className="h-5 w-5" />
@@ -61,22 +66,60 @@ export default function Header({
             <HeaderIcon label="Cart" badge={cartCount > 0 ? String(cartCount) : undefined} onClick={onNavigateCart}>
               <CartIcon className="h-5 w-5" />
             </HeaderIcon>
-            <HeaderIcon label="Help">
-              <HelpIcon className="h-5 w-5" />
-            </HeaderIcon>
-            <button
-              onClick={onNavigateCart}
-              className="hidden rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-fibo-blue hover:text-fibo-blue sm:inline-flex"
-            >
-              Cart
-            </button>
             {isLoggedIn ? (
-              <button
-                onClick={onLogout}
-                className="hidden rounded-xl bg-fibo-blue px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:inline-flex"
-              >
-                Logout
-              </button>
+              <div className="relative hidden sm:block">
+                <button
+                  onClick={() => setProfileOpen((value) => !value)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-fibo-blue hover:text-fibo-blue"
+                >
+                  <span>{profileName}</span>
+                  <svg
+                    className={`h-4 w-4 transition-transform ${profileOpen ? "rotate-180" : ""}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+                {profileOpen ? (
+                  <div className="absolute right-0 z-50 mt-2 w-64 rounded-2xl border border-white/10 bg-slate-900 p-2 shadow-panel">
+                    <div className="px-3 py-2">
+                      <p className="text-sm font-semibold text-white">{profileName}</p>
+                      <p className="text-xs text-slate-400">{currentUser?.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setProfileOpen(false);
+                        onNavigateProfile();
+                      }}
+                      className="w-full rounded-xl px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-white/10"
+                    >
+                      User information
+                    </button>
+                    <button
+                      onClick={() => {
+                        setProfileOpen(false);
+                        onNavigatePackageStatus();
+                      }}
+                      className="w-full rounded-xl px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-white/10"
+                    >
+                      Check package status
+                    </button>
+                    <button
+                      onClick={() => {
+                        setProfileOpen(false);
+                        onLogout();
+                      }}
+                      className="w-full rounded-xl px-3 py-2 text-left text-sm text-rose-300 transition hover:bg-white/10"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             ) : (
               <div className="hidden items-center gap-2 sm:flex">
                 <button
@@ -107,12 +150,30 @@ export default function Header({
               Cart ({cartCount})
             </button>
             {isLoggedIn ? (
-              <button
-                onClick={onLogout}
-                className="rounded-xl bg-fibo-blue px-4 py-3 text-left text-sm font-semibold text-white"
-              >
-                Logout
-              </button>
+              <>
+                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                  <p className="text-sm font-semibold text-white">{profileName}</p>
+                  <p className="text-xs text-slate-400">{currentUser?.email}</p>
+                </div>
+                <button
+                  onClick={onNavigateProfile}
+                  className="rounded-xl border border-white/20 px-4 py-3 text-left text-sm font-semibold text-white"
+                >
+                  User information
+                </button>
+                <button
+                  onClick={onNavigatePackageStatus}
+                  className="rounded-xl border border-white/20 px-4 py-3 text-left text-sm font-semibold text-white"
+                >
+                  Check package status
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="rounded-xl bg-fibo-blue px-4 py-3 text-left text-sm font-semibold text-white"
+                >
+                  Logout
+                </button>
+              </>
             ) : (
               <>
                 <button

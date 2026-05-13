@@ -63,3 +63,68 @@ export async function checkoutOrder(userEmail, cartItems) {
   // Success
   return newOrderId;
 }
+
+/**
+ * Fetch all orders for a user email with their order items.
+ *
+ * @param {string} userEmail
+ * @returns {Promise<Array>}
+ */
+export async function fetchOrdersByUserEmail(userEmail) {
+  if (!userEmail) {
+    throw new Error("User email is required.");
+  }
+
+  const { data: userData, error: userError } = await supabase
+    .from("USER")
+    .select("user_id")
+    .eq("email", userEmail)
+    .single();
+
+  if (userError || !userData) {
+    throw new Error(`Failed to find user profile: ${userError?.message || "User not found in USER table"}`);
+  }
+
+  const { data: orders, error: ordersError } = await supabase
+    .from("ORDERS")
+    .select(`
+      order_id,
+      order_status,
+      created_at
+    `)
+    .eq("user_id", userData.user_id)
+    .order("created_at", { ascending: false });
+
+  if (ordersError) {
+    throw new Error(`Failed to load orders: ${ordersError.message}`);
+  }
+
+  if (!orders || orders.length === 0) {
+    return [];
+  }
+
+  // Get all order_ids to fetch items
+  const orderIds = orders.map(o => o.order_id);
+
+  // Fetch all order items for these orders
+  const { data: orderItems, error: itemsError } = await supabase
+    .from("ORDER_ITEMS")
+    .select(`
+      order_items_id,
+      order_id,
+      variant_id,
+      quantity,
+      total_price
+    `)
+    .in("order_id", orderIds);
+
+  if (itemsError) {
+    throw new Error(`Failed to load order items: ${itemsError.message}`);
+  }
+
+  // Merge the items into their respective orders
+  return orders.map(order => ({
+    ...order,
+    ORDER_ITEMS: orderItems ? orderItems.filter(item => item.order_id === order.order_id) : []
+  }));
+}
