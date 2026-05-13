@@ -17,10 +17,12 @@ export default function ProductListItem({ product, formatPrice, onViewProduct })
       className="group cursor-pointer overflow-hidden rounded-[24px] border border-white/10 bg-slate-100 shadow-soft transition duration-300 hover:-translate-y-1.5 hover:shadow-glow"
     >
       {/* Model preview area */}
-      <div className="flex h-44 items-center justify-center bg-gradient-to-br from-orange-200 via-white to-slate-200">
-        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-900 text-lg font-bold tracking-[0.24em] text-white shadow-panel transition group-hover:scale-110">
-          {product.product_variants?.some((v) => v.model) ? "3D" : product.name?.slice(0, 2).toUpperCase()}
-        </div>
+      <div className="flex h-44 items-center justify-center bg-white p-4">
+        <img
+          src={(product.images || "") || `/images/${product.product_id}.jpg`}
+          alt={product.name}
+          className="h-full w-full object-contain transition duration-500 group-hover:scale-110"
+        />
       </div>
 
       {/* Details */}

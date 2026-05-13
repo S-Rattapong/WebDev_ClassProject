@@ -45,6 +45,7 @@ export async function fetchProducts() {
       product_id,
       name,
       description,
+      images,
       product_variants (
         variant_id,
         model,
@@ -69,6 +70,7 @@ export async function fetchProductById(productId) {
       product_id,
       name,
       description,
+      images,
       product_variants (
         variant_id,
         model,
@@ -94,6 +96,7 @@ export async function searchProducts(keyword) {
       product_id,
       name,
       description,
+      images,
       product_variants (
         variant_id,
         model,

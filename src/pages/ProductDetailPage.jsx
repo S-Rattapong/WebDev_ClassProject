@@ -10,6 +10,9 @@ import {
 } from "../lib/productService";
 
 function AttributeSelector({ label, options, selectedValue, onSelect }) {
+  // Check if options are numerical (e.g. "10", "1.5", "5mm")
+  const isNumeric = options.length > 0 && options.every((opt) => !isNaN(parseFloat(opt)));
+
   return (
     <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -17,22 +20,41 @@ function AttributeSelector({ label, options, selectedValue, onSelect }) {
         <span className="text-xs font-medium text-fibo-blue">{selectedValue || "—"}</span>
       </div>
       <div className="flex flex-wrap gap-2">
-        {options.map((option) => {
-          const isActive = option === selectedValue;
-          return (
-            <button
-              key={option}
-              onClick={() => onSelect(option)}
-              className={
-                isActive
-                  ? "rounded-full bg-fibo-blue px-4 py-2 text-sm font-semibold text-white shadow-sm"
-                  : "rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-fibo-blue hover:text-fibo-blue"
-              }
-            >
-              {option}
-            </button>
-          );
-        })}
+        {isNumeric ? (
+          <select
+            value={selectedValue || ""}
+            onChange={(e) => onSelect(e.target.value)}
+            className="w-full cursor-pointer rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 outline-none transition hover:border-fibo-blue focus:border-fibo-blue focus:ring-1 focus:ring-fibo-blue"
+          >
+            {!selectedValue && (
+              <option value="" disabled>
+                Select {label}
+              </option>
+            )}
+            {options.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        ) : (
+          options.map((option) => {
+            const isActive = option === selectedValue;
+            return (
+              <button
+                key={option}
+                onClick={() => onSelect(option)}
+                className={
+                  isActive
+                    ? "rounded-full bg-fibo-blue px-4 py-2 text-sm font-semibold text-white shadow-sm"
+                    : "rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-fibo-blue hover:text-fibo-blue"
+                }
+              >
+                {option}
+              </button>
+            );
+          })
+        )}
       </div>
     </section>
   );
@@ -162,14 +184,11 @@ export default function ProductDetailPage({
   ) : null;
 
   // ── 3D Model Panel (changes with variant) ──
-  const modelPanel = currentVariant?.model ? (
-    <ModelViewer modelUrl={currentVariant.model} />
-  ) : (
-    <div className="flex h-[380px] items-center justify-center rounded-[28px] border border-white/10 bg-slate-100 shadow-soft md:h-[460px]">
-      <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-slate-900 text-3xl font-bold tracking-[0.24em] text-white shadow-panel">
-        3D
-      </div>
-    </div>
+  const modelPanel = (
+    <ModelViewer
+      modelUrl={currentVariant?.model}
+      imageUrl={product.images || `/images/${product.product_id}.jpg`}
+    />
   );
 
   // ── Detail Panel ──
