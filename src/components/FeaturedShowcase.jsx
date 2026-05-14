@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import pic1 from "../pic/pic1.png";
-import pic2 from "../pic/pic2.jpg";
-import pic3 from "../pic/pic3.jpg";
+import pic2 from "../pic/pic2.png";
+import pic3 from "../pic/pic3.png";
+import pic4 from "../pic/pic4.png";
+import pic5 from "../pic/pic5.png";
 
 const slides = [
   {
@@ -18,6 +20,16 @@ const slides = [
     id: "banner-3",
     image: pic3,
     alt: "FIBO-MART promotional banner 3",
+  },
+  {
+    id: "banner-4",
+    image: pic4,
+    alt: "FIBO-MART promotional banner 4",
+  },
+  {
+    id: "banner-5",
+    image: pic5,
+    alt: "FIBO-MART promotional banner 5",
   },
 ];
 
@@ -86,9 +98,8 @@ export default function FeaturedShowcase() {
             <button
               key={slide.id}
               onClick={() => goToSlide(index)}
-              className={`h-3 rounded-full transition-all duration-300 ${
-                activeIndex === index ? "w-10 bg-fibo-orange" : "w-3 bg-white/35 hover:bg-white/60"
-              }`}
+              className={`h-3 rounded-full transition-all duration-300 ${activeIndex === index ? "w-10 bg-fibo-orange" : "w-3 bg-white/35 hover:bg-white/60"
+                }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
